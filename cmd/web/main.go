@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"sync"
 
@@ -31,7 +33,7 @@ func main() {
 	wg := sync.WaitGroup{}
 
 	//set up the application config
-	_ = config.AppConfig{
+	appConfig := AppConfig{
 		Session:  config.GetSession(),
 		Db:       config.GetDB(),
 		Wait:     &wg,
@@ -42,5 +44,21 @@ func main() {
 	// setup mail
 
 	// listen for web connections
+	appConfig.serve()
+
+}
+
+func (app *AppConfig) serve() {
+	//start http server
+	srv := http.Server{
+		Addr:    fmt.Sprintf(":%d", webPort),
+		Handler: app.Routes(),
+	}
+
+	app.InfoLog.Println("starting web server")
+	err := srv.ListenAndServe()
+	if err != nil {
+		log.Panic("error while creating server; %w", err)
+	}
 
 }
