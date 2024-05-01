@@ -5,7 +5,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 
 	"github.com/the-Jinxist/subber/config"
 )
@@ -43,6 +45,9 @@ func main() {
 
 	// setup mail
 
+	// listen for signals
+	go appConfig.listenForShutdown()
+
 	// listen for web connections
 	appConfig.serve()
 
@@ -60,5 +65,31 @@ func (app *AppConfig) serve() {
 	if err != nil {
 		log.Panic("error while creating server; %w", err)
 	}
+
+}
+
+func (app *AppConfig) listenForShutdown() {
+	quit := make(chan os.Signal, 1)
+
+	//this listens for the signal to interrupt or terminate the channel
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	//this blocks until we get a value in the quit channel
+	<-quit
+
+	app.shutdown()
+
+	os.Exit(0)
+
+}
+
+func (app *AppConfig) shutdown() {
+	//perform any cleanup task
+	app.InfoLog.Println("would run clean up task")
+
+	//block until waitgroup is empty
+	app.Wait.Wait()
+
+	app.InfoLog.Println("closing channels and shutting down application")
 
 }
