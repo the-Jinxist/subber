@@ -10,6 +10,7 @@ import (
 	"syscall"
 
 	"github.com/the-Jinxist/subber/config"
+	"github.com/the-Jinxist/subber/data"
 )
 
 const webPort = 8080
@@ -41,6 +42,7 @@ func main() {
 		Wait:     &wg,
 		InfoLog:  infoLog,
 		ErrorLog: errorLog,
+		Models:   data.New(config.GetDB()),
 	}
 
 	// setup mail

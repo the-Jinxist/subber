@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/alexedwards/scs/v2"
+	"github.com/the-Jinxist/subber/data"
 )
 
 type AppConfig struct {
@@ -14,4 +15,5 @@ type AppConfig struct {
 	InfoLog  *log.Logger
 	ErrorLog *log.Logger
 	Wait     *sync.WaitGroup
+	Models   data.Models
 }
