@@ -13,7 +13,7 @@ import (
 	"github.com/the-Jinxist/subber/data"
 )
 
-const webPort = 8080
+const webPort = "80"
 
 func main() {
 
@@ -57,8 +57,8 @@ func main() {
 
 func (app *AppConfig) serve() {
 	//start http server
-	srv := http.Server{
-		Addr:    fmt.Sprintf(":%d", webPort),
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%s", webPort),
 		Handler: app.Routes(),
 	}
 

@@ -1,12 +1,16 @@
 package config
 
-import "github.com/spf13/viper"
+import (
+	"log"
+
+	"github.com/spf13/viper"
+)
 
 func LoadEnvs(envPath string) {
 	// viper.AddConfigPath(envPath)
-	viper.AddConfigPath("../../")
+
 	viper.AddConfigPath(".")
-	viper.AddConfigPath("../")
+	// viper.AddConfigPath("../")
 
 	// viper.AddConfigPath("./.")
 	// viper.AddConfigPath("././.")
@@ -21,6 +25,10 @@ func LoadEnvs(envPath string) {
 
 	viper.SetConfigName("app")
 	viper.SetConfigType("env")
+
+	if err := viper.ReadInConfig(); err != nil {
+		log.Fatalf("Error reading config file: %s", err)
+	}
 
 	viper.AutomaticEnv()
 

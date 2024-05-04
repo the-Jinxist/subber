@@ -1,17 +1,21 @@
 package config
 
 import (
+	"encoding/gob"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/alexedwards/scs/redisstore"
 	"github.com/alexedwards/scs/v2"
+	"github.com/the-Jinxist/subber/data"
 )
 
 var scm *scs.SessionManager
 
 func InitSession() {
+	gob.Register(data.User{})
+
 	session := scs.New()
 
 	rdb := GetRedis()
