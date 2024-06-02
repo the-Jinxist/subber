@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -27,8 +26,6 @@ func (app *AppConfig) Routes() http.Handler {
 	mux.Get("/activate-account", app.ActivateAccount)
 
 	mux.Get("/test-email", func(w http.ResponseWriter, r *http.Request) {
-
-		fmt.Println("here.... 2222")
 
 		m := Mail{
 			Domain:      "localhost",

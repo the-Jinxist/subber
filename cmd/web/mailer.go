@@ -61,15 +61,11 @@ func (m *Mail) SendEmail(msg Message, erroChan chan error) {
 	//build html message
 	formattedMessage, err := m.buildHTMLMessage(msg)
 	if err != nil {
-		fmt.Println("here.... 22221")
-
 		erroChan <- err
 	}
 
 	plainTextMessage, err := m.buildPlainTextMessage(msg)
 	if err != nil {
-		fmt.Println("here.... 2223")
-
 		erroChan <- err
 	}
 
@@ -85,8 +81,6 @@ func (m *Mail) SendEmail(msg Message, erroChan chan error) {
 
 	smtpClient, err := server.Connect()
 	if err != nil {
-		fmt.Println("here.... 2224")
-
 		erroChan <- err
 	}
 
@@ -103,8 +97,6 @@ func (m *Mail) SendEmail(msg Message, erroChan chan error) {
 
 	err = email.Send(smtpClient)
 	if err != nil {
-		fmt.Println("here.... 2225: %s", err)
-
 		erroChan <- err
 	}
 
@@ -120,7 +112,6 @@ func (m *Mail) buildHTMLMessage(msg Message) (string, error) {
 
 	var tpl bytes.Buffer
 	if err = t.ExecuteTemplate(&tpl, "body", msg.DataMap); err != nil {
-		fmt.Printf("error is: %s", err)
 		return "", err
 	}
 

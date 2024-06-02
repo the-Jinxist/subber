@@ -7,7 +7,8 @@ import (
 	"time"
 )
 
-var pathToTemplate = "./cmd/web/templates"
+// var pathToTemplate = "/Users/neo/Desktop/Work/Go/subber/cmd/web/templates"
+var pathToTemplate = "./cmd/web/templates" // docker
 
 type TemplateData struct {
 	StringMap     map[string]string
