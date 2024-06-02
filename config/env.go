@@ -9,19 +9,8 @@ import (
 func LoadEnvs(envPath string) {
 	// viper.AddConfigPath(envPath)
 
-	viper.AddConfigPath(".")
-	// viper.AddConfigPath("../")
-
-	// viper.AddConfigPath("./.")
-	// viper.AddConfigPath("././.")
-
+	viper.AddConfigPath(".") // for docker
 	// viper.AddConfigPath("../..")
-	// viper.AddConfigPath("..")
-
-	// viper.AddConfigPath("../../")
-	// viper.AddConfigPath("../../..")
-	// viper.AddConfigPath("../../../")
-	// viper.AddConfigPath("../../../..")
 
 	viper.SetConfigName("app")
 	viper.SetConfigType("env")

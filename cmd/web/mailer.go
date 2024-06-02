@@ -1,9 +1,13 @@
 package main
 
 import (
+	"bytes"
+	"fmt"
+	"html/template"
 	"sync"
 	"time"
 
+	"github.com/vanng822/go-premailer/premailer"
 	mail "github.com/xhit/go-simple-mail/v2"
 )
 
@@ -57,11 +61,15 @@ func (m *Mail) SendEmail(msg Message, erroChan chan error) {
 	//build html message
 	formattedMessage, err := m.buildHTMLMessage(msg)
 	if err != nil {
+		fmt.Println("here.... 22221")
+
 		erroChan <- err
 	}
 
 	plainTextMessage, err := m.buildPlainTextMessage(msg)
 	if err != nil {
+		fmt.Println("here.... 2223")
+
 		erroChan <- err
 	}
 
@@ -77,6 +85,8 @@ func (m *Mail) SendEmail(msg Message, erroChan chan error) {
 
 	smtpClient, err := server.Connect()
 	if err != nil {
+		fmt.Println("here.... 2224")
+
 		erroChan <- err
 	}
 
@@ -93,17 +103,71 @@ func (m *Mail) SendEmail(msg Message, erroChan chan error) {
 
 	err = email.Send(smtpClient)
 	if err != nil {
+		fmt.Println("here.... 2225: %s", err)
+
 		erroChan <- err
 	}
 
 }
 
 func (m *Mail) buildHTMLMessage(msg Message) (string, error) {
-	return "", nil
+	templateToRender := fmt.Sprintf("./cmd/web/templates/%s.html.gohtml", msg.Template)
+
+	t, err := template.New("mail-html").ParseFiles(templateToRender)
+	if err != nil {
+		return "", err
+	}
+
+	var tpl bytes.Buffer
+	if err = t.ExecuteTemplate(&tpl, "body", msg.DataMap); err != nil {
+		fmt.Printf("error is: %s", err)
+		return "", err
+	}
+
+	formattedMessage := tpl.String()
+
+	formattedMessage, err = m.inlineCSS(formattedMessage)
+	if err != nil {
+		return "", err
+	}
+	return formattedMessage, nil
 }
 
 func (m *Mail) buildPlainTextMessage(msg Message) (string, error) {
-	return "", nil
+	templateToRender := fmt.Sprintf("./cmd/web/templates/%s.plain.gohtml", msg.Template)
+
+	t, err := template.New("email-plain").ParseFiles(templateToRender)
+	if err != nil {
+		return "", err
+	}
+
+	var tpl bytes.Buffer
+	if err = t.ExecuteTemplate(&tpl, "body", msg.DataMap); err != nil {
+		return "", err
+	}
+
+	plainMessage := tpl.String()
+	return plainMessage, nil
+}
+
+func (m *Mail) inlineCSS(s string) (string, error) {
+	options := premailer.Options{
+		RemoveClasses:     false,
+		CssToAttributes:   false,
+		KeepBangImportant: true,
+	}
+
+	prem, err := premailer.NewPremailerFromString(s, &options)
+	if err != nil {
+		return "", err
+	}
+
+	html, err := prem.Transform()
+	if err != nil {
+		return "", err
+	}
+
+	return html, nil
 }
 
 func (m *Mail) getEncryption() mail.Encryption {
