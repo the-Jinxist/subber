@@ -46,6 +46,8 @@ func main() {
 	}
 
 	// setup mail
+	appConfig.Mailer = appConfig.createMail()
+	go appConfig.ListenForMail()
 
 	// listen for signals
 	go appConfig.listenForShutdown()
@@ -91,7 +93,11 @@ func (app *AppConfig) shutdown() {
 
 	//block until waitgroup is empty
 	app.Wait.Wait()
+	app.Mailer.DoneChan <- true
 
 	app.InfoLog.Println("closing channels and shutting down application")
+	close(app.Mailer.MailerChan)
+	close(app.Mailer.ErrorChan)
+	close(app.Mailer.DoneChan)
 
 }
