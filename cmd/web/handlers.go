@@ -125,6 +125,35 @@ func (app *AppConfig) PostRegisterPage(w http.ResponseWriter, r *http.Request) {
 func (app *AppConfig) ActivateAccount(w http.ResponseWriter, r *http.Request) {
 
 	// valiadate url
+	uri := r.RequestURI // this returns the `?param=value` part of the url
+	testUrl := fmt.Sprintf("http://localhost%s", uri)
+
+	okay := VerifyToken(testUrl)
+	if !okay {
+		app.Session.Put(r.Context(), "error", "Invalid token")
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+
+	}
+
+	// activate the user
+
+	u, err := app.Models.User.GetByEmail(r.URL.Query().Get("email"))
+	if err != nil {
+		app.Session.Put(r.Context(), "error", "No user found")
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	u.Active = 1
+	if err = u.Update(); err != nil {
+		app.Session.Put(r.Context(), "error", "Unable to update user")
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+
+	app.Session.Put(r.Context(), "flash", "Account Activated. You can now log in")
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 
 	// generate an invoice
 
