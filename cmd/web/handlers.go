@@ -1,7 +1,11 @@
 package main
 
 import (
+	"fmt"
+	"html/template"
 	"net/http"
+
+	"github.com/the-Jinxist/subber/data"
 )
 
 func (app *AppConfig) HomePage(w http.ResponseWriter, r *http.Request) {
@@ -77,12 +81,44 @@ func (app *AppConfig) RegisterPage(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *AppConfig) PostRegisterPage(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		app.ErrorLog.Println(err)
+	}
+
+	//TODO - validate data
 
 	// create user
+	u := data.User{
+		Email:     r.Form.Get("email"),
+		FirstName: r.Form.Get("first-name"),
+		LastName:  r.Form.Get("last-name"),
+		Password:  r.Form.Get("password"),
+		Active:    0,
+		IsAdmin:   0,
+	}
+
+	if _, err = u.Insert(u); err != nil {
+		app.Session.Put(r.Context(), "error", "Unable to create user")
+		http.Redirect(w, r, "/register", http.StatusSeeOther)
+	}
 
 	//sending activation email
+	url := fmt.Sprintf("http://localhost/activate?email=%s", u.Email)
+	signedUrl := GenerateTokenFromString(url)
+	app.InfoLog.Println(signedUrl)
 
-	//subscribe the user to an account
+	msg := Message{
+		To:       u.Email,
+		Subject:  "Activate your account",
+		Template: "confirmation-email",
+		Data:     template.HTML(signedUrl),
+	}
+
+	app.sendEmail(msg)
+
+	app.Session.Put(r.Context(), "flash", "Confirmation email sent. Check your email")
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 
 }
 
@@ -93,5 +129,7 @@ func (app *AppConfig) ActivateAccount(w http.ResponseWriter, r *http.Request) {
 	// generate an invoice
 
 	// send an email with attachments
+
+	//subscribe the user to an account
 
 }
