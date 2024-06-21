@@ -5,6 +5,8 @@ import (
 	"html/template"
 	"net/http"
 	"time"
+
+	"github.com/the-Jinxist/subber/data"
 )
 
 // var pathToTemplate = "/Users/neo/Desktop/Work/Go/subber/cmd/web/templates"
@@ -20,7 +22,7 @@ type TemplateData struct {
 	Error         string
 	Authenticated bool
 	Now           time.Time
-	//User data.User
+	User          *data.User
 }
 
 func (app *AppConfig) render(w http.ResponseWriter, r *http.Request, templatName string, td *TemplateData) {
@@ -72,7 +74,12 @@ func (app *AppConfig) addDefaultData(td *TemplateData, r *http.Request) *Templat
 	if app.isAuthenticated(r) {
 		td.Authenticated = true
 
-		//TODO: add more info if user is authenticated
+		user, ok := app.Session.Get(r.Context(), "user").(data.User)
+		if !ok {
+			app.ErrorLog.Println("can't get user information")
+		} else {
+			td.User = &user
+		}
 	}
 	td.Now = time.Now()
 
