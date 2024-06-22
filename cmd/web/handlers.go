@@ -232,6 +232,6 @@ func (app *AppConfig) SubscribeToPlan(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func (app *AppConfig) getInvoice(user data.User, plan *data.Plan) (string, error) {
+func (app *AppConfig) getInvoice(_ data.User, plan *data.Plan) (string, error) {
 	return plan.PlanAmountFormatted, nil
 }
