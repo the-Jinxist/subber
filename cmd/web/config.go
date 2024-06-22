@@ -10,12 +10,14 @@ import (
 )
 
 type AppConfig struct {
-	Session  *scs.SessionManager
-	Db       *sql.DB
-	InfoLog  *log.Logger
-	ErrorLog *log.Logger
-	Wait     *sync.WaitGroup
-	Models   data.Models
+	Session       *scs.SessionManager
+	Db            *sql.DB
+	InfoLog       *log.Logger
+	ErrorLog      *log.Logger
+	Wait          *sync.WaitGroup
+	Models        data.Models
+	ErrorChan     chan error
+	ErrorChanDone chan bool
 
 	Mailer Mail
 }

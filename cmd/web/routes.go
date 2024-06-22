@@ -25,8 +25,13 @@ func (app *AppConfig) Routes() http.Handler {
 	mux.Post("/register", app.PostRegisterPage)
 	mux.Get("/activate", app.ActivateAccount)
 
-	mux.Get("/plans", app.ChooseSubscription)
-	mux.Get("/subscribe", app.SubscribeToPlan)
+	authedRouter := app.authRouter(mux)
+	authedRouter.Get("/plans", app.ChooseSubscription)
+	authedRouter.Get("/subscribe", app.SubscribeToPlan)
 
 	return mux
+}
+
+func (app *AppConfig) authRouter(mux *chi.Mux) chi.Router {
+	return mux.With(app.Auth)
 }

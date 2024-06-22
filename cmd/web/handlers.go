@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"strconv"
 
 	"github.com/the-Jinxist/subber/data"
 )
@@ -186,4 +187,51 @@ func (app *AppConfig) ChooseSubscription(w http.ResponseWriter, r *http.Request)
 
 func (app *AppConfig) SubscribeToPlan(w http.ResponseWriter, r *http.Request) {
 
+	// get the id of the plan that is
+	id := r.URL.Query().Get("id")
+
+	planID, _ := strconv.Atoi(id)
+	plan, err := app.Models.Plan.GetOne(planID)
+
+	if err != nil {
+		app.Session.Put(r.Context(), "error", "Unable to find plan")
+		http.Redirect(w, r, "/plans", http.StatusSeeOther)
+		app.ErrorLog.Println(err)
+		return
+	}
+
+	// get user form the session
+	user, ok := app.Session.Get(r.Context(), "user").(data.User)
+	if !ok {
+		app.Session.Put(r.Context(), "error", "Login first")
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		app.ErrorLog.Println(err)
+		return
+	}
+
+	app.Wait.Add(1)
+
+	go func() {
+		defer app.Wait.Done()
+
+		invoice, err := app.getInvoice(user, plan)
+		if err != nil {
+			// send this to a channel
+			app.ErrorChan <- err
+		}
+
+		msg := Message{
+			To:       user.Email,
+			Subject:  "Your invoice",
+			Data:     invoice,
+			Template: "invoice",
+		}
+
+		app.sendEmail(msg)
+	}()
+
+}
+
+func (app *AppConfig) getInvoice(user data.User, plan *data.Plan) (string, error) {
+	return plan.PlanAmountFormatted, nil
 }
