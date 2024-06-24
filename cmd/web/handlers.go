@@ -1,11 +1,15 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
+	"time"
 
+	"github.com/phpdave11/gofpdf"
+	"github.com/phpdave11/gofpdf/contrib/gofpdi"
 	"github.com/the-Jinxist/subber/data"
 )
 
@@ -229,6 +233,61 @@ func (app *AppConfig) SubscribeToPlan(w http.ResponseWriter, r *http.Request) {
 
 		app.sendEmail(msg)
 	}()
+
+	app.Wait.Add(1)
+
+	go func() {
+
+		defer app.Wait.Done()
+
+		pdf := app.generateManual(user, plan)
+		err := pdf.OutputFileAndClose(fmt.Sprintf("./tmp/%d_manual.pdf", user.ID))
+		if err != nil {
+			// send this to a channel
+			app.ErrorChan <- err
+			return
+		}
+
+		msg := Message{
+			To:      user.Email,
+			Subject: "Your manual",
+			Data:    "Your user manual is attached",
+			AttachmentMap: map[string]string{
+				"Manual.pdf": fmt.Sprintf("./tmp/%d_manual.pdf", user.ID),
+			},
+		}
+
+		app.sendEmail(msg)
+
+		app.ErrorChan <- errors.New("some custom error")
+
+	}()
+
+	app.Session.Put(r.Context(), "flash", "subscribed!")
+	http.Redirect(w, r, "/plans", http.StatusSeeOther)
+
+}
+
+func (app *AppConfig) generateManual(user data.User, _ *data.Plan) *gofpdf.Fpdf {
+	pdf := gofpdf.New("P", "mm", "Letter", "")
+	pdf.SetMargins(10, 13, 10)
+
+	importer := gofpdi.NewImporter()
+	time.Sleep(5 * time.Second)
+
+	t := importer.ImportPage(pdf, "./pdf/manual.pdf", 1, "/MediaBox")
+	pdf.AddPage()
+
+	importer.UseImportedTemplate(pdf, t, 0, 0, 215.9, 0)
+	pdf.SetX(75)
+	pdf.SetY(150)
+	pdf.SetFont("Arial", "", 12)
+	pdf.MultiCell(0, 4, fmt.Sprintf("%s %s", user.FirstName, user.LastName), "", "C", false)
+
+	pdf.Ln(5)
+
+	pdf.MultiCell(0, 4, fmt.Sprintf("%s user guide", user.FirstName), "", "C", false)
+	return pdf
 
 }
 
