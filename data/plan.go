@@ -71,6 +71,7 @@ func (p *Plan) GetOne(id int) (*Plan, error) {
 		&plan.CreatedAt,
 		&plan.UpdatedAt,
 	)
+	plan.PlanAmountFormatted = plan.AmountForDisplay()
 
 	if err != nil {
 		return nil, err
