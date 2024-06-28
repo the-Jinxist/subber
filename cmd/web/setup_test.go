@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/gob"
 	"log"
 	"net/http"
@@ -70,4 +71,14 @@ func TestMain(m *testing.M) {
 	}()
 
 	os.Exit(m.Run())
+}
+
+func getCtx(req *http.Request) context.Context {
+	ctx, err := testapp.Session.Load(req.Context(), req.Header.Get("X-Session"))
+	if err != nil {
+		log.Println(err)
+	}
+
+	return ctx
+
 }
